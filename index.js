@@ -1,73 +1,73 @@
 /*!
- * serve-static
- * Copyright(c) 2010 Sencha Inc.
+ * serve-static 静态服务 
+ * Copyright(c) 2010 Sencha Inc.2010年拥有版权归属Sencha Inc
  * Copyright(c) 2011 TJ Holowaychuk
  * Copyright(c) 2014-2016 Douglas Christopher Wilson
- * MIT Licensed
+ * MIT Licensed MIT许可证：特此授予任何人获得本软件和相关文档文件（“软件”）的副本的权利，以无限制地处理本软件，包括但不限于使用，复制，修改，合并，发布，分发，再许可和/或出售本软件的副本，并允许本软件提供给本公司的人员遵守以下条件：上述版权声明和本许可声明应包含在本软件的所有副本或主要部分中。本软件按“原样”提供，不作任何明示或暗示的保证，包括但不限于对适销性，特定用途适用性和不侵权的保证。在任何情况下，作者或版权所有者均不对任何索赔，损害或其他责任负责，无论是因合同，侵权或其他原因，由本软件或本软件的使用或其他交易引起或与之相关的行为。软件。
  */
 
-'use strict'
+'use strict' //严格模式
 
 /**
- * Module dependencies.
- * @private
+ * Module dependencies. 模块依赖的生产环境
+ * @private @private作用范围只能在自身类 @protected作用范围在自身类和继承自己的子类，什么都不写，默认是此属性。 @public作用范围最大，在任何地方
  */
 
-var encodeUrl = require('encodeurl')
-var escapeHtml = require('escape-html')
-var parseUrl = require('parseurl')
-var resolve = require('path').resolve
-var send = require('send')
-var url = require('url')
+var encodeUrl = require('encodeurl')//引用第三方API将转化中文
+var escapeHtml = require('escape-html')//引用转义特殊字符API
+var parseUrl = require('parseurl')//解析给定请求对象的URL（查看req.url属性）并返回结果。结果与url.parseNode.js内核相同。req在req.url不改变的地方多次调用这个函数将返回一个缓存的解析对象，而不是再次解析。
+var resolve = require('path').resolve//path.resolve([from ...], to) 将参数 to 位置的字符解析到一个绝对路径里。
+var send = require('send')//Send是一个用于从文件系统流式传输文件的库，作为支持部分响应（范围），条件GET协商（If-Match，If-Unmodified-Since，If-None-Match，If-Modified-Since）的http响应。高测试覆盖率以及可以在您的应用程序或框架中采取适当行动的细化事件。希望提供映射到URL的整个文件夹？尝试静态服务。
+var url = require('url')//加载url模块
 
 /**
- * Module exports.
+ * Module exports 每一个node.js执行文件，都自动创建一个module对象，同时，module对象会创建一个叫exports的属性，初始化的值是 {}
  * @public
  */
 
-module.exports = serveStatic
-module.exports.mime = send.mime
+module.exports = serveStatic//将serveStatic的属性作为module的exports属性的值
+module.exports.mime = send.mime //将send的mime属性作为exports的mime属性的值
 
 /**
- * @param {string} root
- * @param {object} [options]
- * @return {function}
+ * @param {string} root 路径字符串参数
+ * @param {object} [options] 参数{对象} [选项]
+ * @return {function} 返回的函数
  * @public
  */
 
 function serveStatic (root, options) {
   if (!root) {
-    throw new TypeError('root path required')
+    throw new TypeError('root path required')//非root扔出一个错误信息
   }
 
   if (typeof root !== 'string') {
-    throw new TypeError('root path must be a string')
+    throw new TypeError('root path must be a string')//非字符串格式扔出一个错误信息
   }
 
   // copy options object
-  var opts = Object.create(options || null)
+  var opts = Object.create(options || null)//若options不为空，则创建一个原形继承对象，若为空，则创建一个空对象
 
-  // fall-though
-  var fallthrough = opts.fallthrough !== false
+  // fall-through switch语句中的跳过下一跳命令
+  var fallthrough = opts.fallthrough !== false//不为false
 
-  // default redirect
-  var redirect = opts.redirect !== false
+  // default redirect 默认的重定向
+  var redirect = opts.redirect !== false //不为false
 
-  // headers listener
+  // headers listener 头监听
   var setHeaders = opts.setHeaders
 
   if (setHeaders && typeof setHeaders !== 'function') {
-    throw new TypeError('option setHeaders must be function')
+    throw new TypeError('option setHeaders must be function')//如果头监听和头监听的类型不使函数则报错
   }
 
-  // setup options for send
-  opts.maxage = opts.maxage || opts.maxAge || 0
-  opts.root = resolve(root)
+  // setup options for send 为传输创建属性
+  opts.maxage = opts.maxage || opts.maxAge || 0//若opts.maxage不为空则为opts.maxage，若为空则看opts.maxAge若为空为0，不为空为opts.maxAge
+  opts.root = resolve(root)//解析路径
 
-  // construct directory listener
+  // construct directory listener 创建目录监听
   var onDirectory = redirect
     ? createRedirectDirectoryListener()
-    : createNotFoundDirectoryListener()
+    : createNotFoundDirectoryListener()//若redirect不为空或false，则为createRedirectDirectoryListener()，否则为createNotFoundDirectoryListener()
 
   return function serveStatic (req, res, next) {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
