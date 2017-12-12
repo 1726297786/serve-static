@@ -47,7 +47,7 @@ function serveStatic (root, options) {
   // copy options object
   var opts = Object.create(options || null)//若options不为空，则创建一个原形继承对象，若为空，则创建一个空对象
 
-  // fall-through switch语句中的跳过下一跳命令
+  // fall-through 
   var fallthrough = opts.fallthrough !== false//不为false
 
   // default redirect 默认的重定向
