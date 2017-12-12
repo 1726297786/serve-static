@@ -75,8 +75,8 @@ function serveStatic (root, options) {
         return next()
       }
 
-      // method not allowed
-      res.statusCode = 405
+      // method not allowed 方法不被允许
+      res.statusCode = 405  //当客户端访问受口令保护时，服务器端会发送401状态码
       res.setHeader('Allow', 'GET, HEAD')
       res.setHeader('Content-Length', '0')
       res.end()
@@ -87,23 +87,23 @@ function serveStatic (root, options) {
     var originalUrl = parseUrl.original(req)
     var path = parseUrl(req).pathname
 
-    // make sure redirect occurs at mount
+    // make sure redirect occurs at mount 确保重定向发生
     if (path === '/' && originalUrl.pathname.substr(-1) !== '/') {
       path = ''
     }
 
-    // create send stream
+    // create send stream 创造发送流
     var stream = send(req, path, opts)
 
-    // add directory handler
+    // add directory handler 目录添加处理程序
     stream.on('directory', onDirectory)
 
-    // add headers listener
+    // add headers listener 添加头监听
     if (setHeaders) {
       stream.on('headers', setHeaders)
     }
 
-    // add file listener for fallthrough
+    // add file listener for fallthrough 对fallthrough添加监听器
     if (fallthrough) {
       stream.on('file', function onFile () {
         // once file is determined, always forward error
@@ -111,7 +111,7 @@ function serveStatic (root, options) {
       })
     }
 
-    // forward errors
+    // forward errors 提交错误
     stream.on('error', function error (err) {
       if (forwardError || !(err.statusCode < 500)) {
         next(err)
@@ -121,7 +121,7 @@ function serveStatic (root, options) {
       next()
     })
 
-    // pipe
+    // pipe 通过管道连接流
     stream.pipe(res)
   }
 }
@@ -143,9 +143,9 @@ function collapseLeadingSlashes (str) {
 }
 
  /**
- * Create a minimal HTML document.
+ * Create a minimal HTML document. 创建小HTML文档
  *
- * @param {string} title
+ * @param {string} title  标题字符串参数
  * @param {string} body
  * @private
  */
@@ -163,7 +163,7 @@ function createHtmlDocument (title, body) {
 }
 
 /**
- * Create a directory listener that just 404s.
+ * Create a directory listener that just 404s. 创建一个目录监听者
  * @private
  */
 
@@ -174,7 +174,7 @@ function createNotFoundDirectoryListener () {
 }
 
 /**
- * Create a directory listener that performs a redirect.
+ * Create a directory listener that performs a redirect.创建执行重定向的目录监听器
  * @private
  */
 
@@ -185,19 +185,19 @@ function createRedirectDirectoryListener () {
       return
     }
 
-    // get original URL
+    // get original URL 得到原始url
     var originalUrl = parseUrl.original(this.req)
 
-    // append trailing slash
+    // append trailing slash 生成的Url末尾添加斜线
     originalUrl.path = null
     originalUrl.pathname = collapseLeadingSlashes(originalUrl.pathname + '/')
 
-    // reformat the URL
+    // reformat the URL 格式化url
     var loc = encodeUrl(url.format(originalUrl))
     var doc = createHtmlDocument('Redirecting', 'Redirecting to <a href="' + escapeHtml(loc) + '">' +
       escapeHtml(loc) + '</a>')
 
-    // send redirect response
+    // send redirect response 发送重定向响应
     res.statusCode = 301
     res.setHeader('Content-Type', 'text/html; charset=UTF-8')
     res.setHeader('Content-Length', Buffer.byteLength(doc))
