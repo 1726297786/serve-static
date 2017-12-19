@@ -225,7 +225,7 @@ app.use(serveStatic('public/ftp', {'index': ['default.html', 'default.htm']}))
 app.listen(3000)
 ```
 
-#### Multiple roots
+#### Multiple roots 多重根
 
 This example shows a simple way to search through multiple directories.
 Files are look for in `public-optimized/` first, then `public/` second as
