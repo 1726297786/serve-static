@@ -24,6 +24,7 @@ $ npm install serve-static
 ```js
 var serveStatic = require('serve-static')
 ```
+创建一个新的中间件函数来提供给定根目录下的文件。要提供的文件将通过结合req.url 提供的根目录来确定。当没有找到文件的时候，这个模块不会发送一个404响应，而是调用next()移动到下一个中​​间件，允许堆栈和回退。
 
 ### serveStatic(root, options)
 
@@ -40,11 +41,13 @@ to the next middleware, allowing for stacking and fall-backs.
 Enable or disable accepting ranged requests, defaults to true.
 Disabling this will not send `Accept-Ranges` and ignore the contents
 of the `Range` request header.
+启用或禁用接受范围的请求，默认为true。禁用此功能将不会发送Accept-Ranges和忽略Range请求标头的内容
 
 ##### cacheControl
 
 Enable or disable setting `Cache-Control` response header, defaults to
 true. Disabling this will ignore the `immutable` and `maxAge` options.
+启用或禁用设置Cache-Control响应标题，默认为true。禁用这将忽略immutable和maxAge选项。
 
 ##### dotfiles
 
@@ -62,6 +65,13 @@ to "deny").
 The default value is similar to `'ignore'`, with the exception that this
 default will not ignore the files within a directory that begins with a dot.
 
+设置遇到时如何处理“点文件”。dotfile是以点（“。”）开头的文件或目录。注意，这个检查是在路径上完成的，而不检查路径是否真的存在于磁盘上。如果root指定，则仅检查根目录上的点文件（即当设置为“拒绝”时，根目录本身可位于dotfile内）。
+
+'allow' dotfiles没有特别的处理。
+'deny'拒绝一个点文件和403 /的请求next()。
+'ignore'假装像dotfile不存在和404 / next()。
+默认值与类似'ignore'，除了这个默认值不会忽略以点开头的目录中的文件。
+
 ##### etag
 
 Enable or disable etag generation, defaults to true.
@@ -73,6 +83,7 @@ extensions will be added to the file name and search for. The first that
 exists will be served. Example: `['html', 'htm']`.
 
 The default value is `false`.
+设置文件扩展名后备。设置后，如果找不到文件，则会将给定的扩展名添加到文件名中并搜索。第一个存在将被服务。例如：['html', 'htm']。
 
 ##### fallthrough
 
@@ -92,6 +103,13 @@ short-circuiting 404s for less overhead. This middleware will also reply to
 all methods.
 
 The default value is `true`.
+设置中间件将客户端错误视为未处理的请求，否则转发客户端错误。不同之处在于，客户端错误（如错误的请求或对不存在的文件的请求）会导致此next()中间件在此值时发生下一个中间件true。当这个值是false，这些错误（即使404s），将调用 next(err)。
+
+通常true希望使得多个物理目录可以映射到相同的网络地址或用于路由来填充不存在的文件。
+
+false如果将此中间件安装在严格意义上为单个文件系统目录的路径上，则可以使用该值，从而可以使得短路404s的开销更小。这个中间件也会回复所有的方法。
+
+默认值是true。
 
 ##### immutable
 
@@ -100,23 +118,27 @@ header, defaults to `false`. If set to `true`, the `maxAge` option should
 also be specified to enable caching. The `immutable` directive will prevent
 supported clients from making conditional requests during the life of the
 `maxAge` option to check if the file has changed.
+immutable在Cache-Control响应头中启用或禁用指令，默认为false。如果设置为true，则maxAge还应指定该选项以启用缓存。该immutable指令将阻止受支持的客户端在maxAge选项生命周期中发出条件请求， 以检查文件是否已更改。
 
 ##### index
 
 By default this module will send "index.html" files in response to a request
 on a directory. To disable this set `false` or to supply a new index pass a
 string or an array in preferred order.
+默认情况下，这个模块将发送“index.html”文件来响应目录上的请求。要禁用此设置false或提供新索引，请按首选顺序传递字符串或数组。
 
 ##### lastModified
 
 Enable or disable `Last-Modified` header, defaults to true. Uses the file
 system's last modified value.
+启用或禁用Last-Modified标题，默认为true。使用文件系统的最后修改值。
 
 ##### maxAge
 
 Provide a max-age in milliseconds for http caching, defaults to 0. This
 can also be a string accepted by the [ms](https://www.npmjs.org/package/ms#readme)
 module.
+为http缓存提供最大时间（以毫秒为单位），默认值为0.这也可以是ms 模块接受的字符串。
 
 ##### redirect
 
@@ -131,6 +153,12 @@ the arguments are:
   - `res` the response object
   - `path` the file path that is being sent
   - `stat` the stat object of the file that is being sent
+  
+函数设置响应的自定义标题。标题的改变需要同步发生。该函数被称为fn(res, path, stat)，其中的参数是：
+
+res 响应对象
+path 正在发送的文件路径
+stat 正在发送的文件的stat对象
 
 ## Examples
 
